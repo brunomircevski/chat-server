@@ -21,36 +21,25 @@ public class AuthController : ControllerBase
     private static List<User> users = new List<User>(); // TO BE REMOVED
 
     [HttpPost("register")]
-    public ActionResult<User> Register(UserRegisterDto request)
+    public ActionResult<Object> Register(UserRegisterDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest();
 
+        if (users.Find(x => x.username == request.username) is not null)
+            return BadRequest(new { message = $"User {request.username} already exists." });
+
         User user = new User(
             Guid.NewGuid().ToString("N"),
             request.username,
-            request.challenge,
-            request.answer,
+            BCrypt.Net.BCrypt.HashPassword(request.password),
             request.publicKey,
             request.encryptedPrivateKey
         );
 
         users.Add(user);
 
-        return Ok(user);
-    }
-
-    [HttpGet("challenge/{username}")]
-    public ActionResult<Object> GetChallengeByUsername(string username)
-    {
-        if (String.IsNullOrEmpty(username)) return BadRequest();
-        if (username.Length < 4) return BadRequest();
-
-        User? user = users.Find(x => x.username == username);
-
-        if (user is null) return NotFound();
-
-        return Ok(new { challenge = user.challenge });
+        return Ok(new { message = $"User {request.username} successfully registered." });
     }
 
     [HttpPost("login")]
@@ -59,9 +48,13 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
 
-        User? user = users.Find(x => x.username == request.username && x.answer == request.answer);
+        User? user = users.Find(x => x.username == request.username);
 
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
+
+        if (!BCrypt.Net.BCrypt.Verify(request.password, user.passwordHash))
+            return NotFound();
 
         string jwt = CreateToken(user);
 
