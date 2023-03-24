@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Chat.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -61,11 +62,23 @@ public class AuthController : ControllerBase
         return Ok(new { token = jwt });
     }
 
+    [HttpGet("userinfo"), Authorize]
+    public ActionResult<User> UserInfo()
+    {
+        return Ok(getUser());
+    }
+
+    private User? getUser() {
+        Claim? uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
+        if(uuidClaim is null) return null;
+        return users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
+    }
+
     private string CreateToken(User user)
     {
         List<Claim> claims = new List<Claim> {
             new Claim(ClaimTypes.Name, user.username),
-            new Claim(ClaimTypes.Sid, user.uuid)
+            new Claim(ClaimTypes.NameIdentifier, user.uuid)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("AppSettings:Token").Value!));
@@ -82,5 +95,4 @@ public class AuthController : ControllerBase
 
         return jwt;
     }
-
 }
