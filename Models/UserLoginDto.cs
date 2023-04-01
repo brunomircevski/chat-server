@@ -9,8 +9,7 @@ namespace Chat.Models
         [RegularExpression("^[a-zA-Z0-9]*$", ErrorMessage = "Only Letters and Numbers allowed in username.")]
         public required string username { get; set; }
 
-        [MaxLength(128, ErrorMessage = "Password must be 8-128 characters long.")]
-        [MinLength(8, ErrorMessage = "Password must be 8-128 characters long.")]
-        public required string password { get; set; }
+        [MaxLength(4096, ErrorMessage = "Signature must be under 4096 characters long.")]
+        public required string signature { get; set; }
     }
 }

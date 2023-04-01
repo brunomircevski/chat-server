@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using Chat.Models;
@@ -9,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Chat.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration configuration;
@@ -33,9 +34,7 @@ public class AuthController : ControllerBase
         User user = new User(
             Guid.NewGuid().ToString("N"),
             request.username,
-            BCrypt.Net.BCrypt.HashPassword(request.password),
-            request.publicKey,
-            request.encryptedPrivateKey
+            request.publicKey
         );
 
         users.Add(user);
@@ -54,7 +53,7 @@ public class AuthController : ControllerBase
         if (user is null)
             return NotFound();
 
-        if (!BCrypt.Net.BCrypt.Verify(request.password, user.passwordHash))
+        if (false) //Verify sign
             return NotFound();
 
         string jwt = CreateToken(user);
@@ -62,10 +61,22 @@ public class AuthController : ControllerBase
         return Ok(new { token = jwt });
     }
 
-    [HttpGet("userinfo"), Authorize]
+    [HttpGet("user-info"), Authorize]
     public ActionResult<User> UserInfo()
     {
-        return Ok(getUser());
+        User? user = getUser();
+        if(user is null) return NotFound();
+        return Ok(user);
+    }
+
+    [HttpGet("server-info")]
+    public ActionResult<Object> ServerInfo()
+    {
+        var assembly = Assembly.GetEntryAssembly();
+        var attribute = assembly == null ? null : assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        var version = attribute == null ? null : attribute.InformationalVersion;
+
+        return Ok(new { version = version, canRegister = true});
     }
 
     private User? getUser() {
@@ -87,7 +98,7 @@ public class AuthController : ControllerBase
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.Now.AddDays(user.tokenExpireDays),
+            expires: DateTime.Now.AddDays(1),
             signingCredentials: creds
         );
 
