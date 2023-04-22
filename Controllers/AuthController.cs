@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Chat.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +40,12 @@ public class AuthController : ControllerBase
 
         users.Add(user);
 
-        return Ok(new { message = $"User {request.username} successfully registered." });
+        return Ok(new
+        {
+            message = $"User {request.username} successfully registered.",
+            username = user.username,
+            uuid = user.uuid
+        });
     }
 
     [HttpPost("login")]
@@ -53,8 +59,25 @@ public class AuthController : ControllerBase
         if (user is null)
             return NotFound();
 
-        if (false) //Verify sign
+        //Verify the signature
+        bool isSignatureValid = false;
+
+        try
+        {
+            RSA rsa = RSA.Create();
+            rsa.ImportFromPem(user.publicKey);
+
+            byte[] signatureBytes = Convert.FromBase64String(request.signature);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(request.username);
+
+            isSignatureValid = rsa.VerifyData(messageBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        }
+        catch {}
+
+        if (!isSignatureValid)
             return NotFound();
+
+        System.Console.WriteLine(request.signature);
 
         string jwt = CreateToken(user);
 
@@ -65,7 +88,7 @@ public class AuthController : ControllerBase
     public ActionResult<User> UserInfo()
     {
         User? user = getUser();
-        if(user is null) return NotFound();
+        if (user is null) return NotFound();
         return Ok(user);
     }
 
@@ -76,12 +99,13 @@ public class AuthController : ControllerBase
         var attribute = assembly == null ? null : assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         var version = attribute == null ? null : attribute.InformationalVersion;
 
-        return Ok(new { version = version, canRegister = true});
+        return Ok(new { version = version, canRegister = true });
     }
 
-    private User? getUser() {
+    private User? getUser()
+    {
         Claim? uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
-        if(uuidClaim is null) return null;
+        if (uuidClaim is null) return null;
         return users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
     }
 
