@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Chat.DataAccess;
 using Chat.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +16,13 @@ namespace Chat.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration configuration;
+    private readonly IDB DB;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(IConfiguration configuration, IDB DB)
     {
         this.configuration = configuration;
+        this.DB = DB;
     }
-
-    private static List<User> users = new List<User>(); // TO BE REMOVED
 
     [HttpPost("register")]
     public ActionResult<Object> Register(UserRegisterDto request)
@@ -29,7 +30,7 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
 
-        if (users.Find(x => x.username == request.username) is not null)
+        if (DB.Users.Where(x => x.username == request.username).FirstOrDefault() is not null)
             return BadRequest(new { message = $"User {request.username} already exists." });
 
         User user = new User(
@@ -38,7 +39,8 @@ public class AuthController : ControllerBase
             request.publicKey
         );
 
-        users.Add(user);
+        DB.Users.Add(user);
+        DB.SaveChanges();
 
         return Ok(new
         {
@@ -54,14 +56,12 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
 
-        User? user = users.Find(x => x.username == request.username);
+        User? user = DB.Users.Where(x => x.username == request.username).FirstOrDefault();
 
         if (user is null)
             return NotFound();
 
         //Verify the signature
-        bool isSignatureValid = false;
-
         try
         {
             RSA rsa = RSA.Create();
@@ -70,14 +70,14 @@ public class AuthController : ControllerBase
             byte[] signatureBytes = Convert.FromBase64String(request.signature);
             byte[] messageBytes = Encoding.UTF8.GetBytes(request.username);
 
-            isSignatureValid = rsa.VerifyData(messageBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            bool isSignatureValid = rsa.VerifyData(messageBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+            if (!isSignatureValid)
+                return NotFound();
         }
-        catch {}
-
-        if (!isSignatureValid)
+        catch {
             return NotFound();
-
-        System.Console.WriteLine(request.signature);
+        }
 
         string jwt = CreateToken(user);
 
@@ -106,7 +106,7 @@ public class AuthController : ControllerBase
     {
         Claim? uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
         if (uuidClaim is null) return null;
-        return users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
+        return DB.Users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
     }
 
     private string CreateToken(User user)

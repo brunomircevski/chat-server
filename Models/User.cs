@@ -6,6 +6,7 @@ namespace Chat.Models
     {
         [Required]
         [MaxLength(64)]
+        [Key]
         public string uuid { get; set; } = String.Empty;
 
         [Required]
@@ -21,7 +22,7 @@ namespace Chat.Models
         [MaxLength(131072)]
         public string encryptedUserData { get; set; } = String.Empty;
 
-        public DateTime lastLogin { get; set; } = DateTime.Today;
+        //public DateTime lastLogin { get; set; } = DateTime.Today;
 
         public User(string uuid, string username, string publicKey)
         {
