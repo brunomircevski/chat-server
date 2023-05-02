@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
 
-        User? user = DB.Users.Where(x => x.username == request.username).FirstOrDefault();
+        User user = DB.Users.Where(x => x.username == request.username).FirstOrDefault();
 
         if (user is null)
             return NotFound();
@@ -87,7 +87,7 @@ public class AuthController : ControllerBase
     [HttpGet("user-info"), Authorize]
     public ActionResult<User> UserInfo()
     {
-        User? user = getUser();
+        User user = getUser();
         if (user is null) return NotFound();
         return Ok(user);
     }
@@ -102,9 +102,9 @@ public class AuthController : ControllerBase
         return Ok(new { version = version, canRegister = true });
     }
 
-    private User? getUser()
+    private User getUser()
     {
-        Claim? uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
+        Claim uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
         if (uuidClaim is null) return null;
         return DB.Users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
     }

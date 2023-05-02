@@ -17,4 +17,5 @@ public class MysqlDB : DbContext, IDB
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Invite> Invites { get; set; }
 }
