@@ -31,5 +31,7 @@ namespace Chat.Models
 
         [Required]
         public bool acceptsInvites { get; set; }
+
+        public List<Invite> Invites { get; set; }
     }
 }

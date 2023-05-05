@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
         var attribute = assembly == null ? null : assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         var version = attribute == null ? null : attribute.InformationalVersion;
 
-        return Ok(new { version = version, canRegister = true });
+        return Ok(new { version = version, canRegister = true, encryptedChatServer = true });
     }
 
     private User getUser()

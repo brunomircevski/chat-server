@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Chat.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/invite")]
 public class InviteController : ControllerBase
@@ -25,7 +24,7 @@ public class InviteController : ControllerBase
         this.DB = DB;
     }
 
-    [HttpPost("new")]
+    [HttpPost("")]
     public ActionResult<Object> CreateInvite(InviteDto request)
     {
         if (!ModelState.IsValid)
@@ -36,21 +35,23 @@ public class InviteController : ControllerBase
         if (user is null)
             return NotFound(new { message = $"User {request.username} not found." });
 
-        if (!user.acceptsInvites)
-            return BadRequest(new { message = $"User {request.username} does not accept invites." });
+        if (!user.acceptsInvites || user.Invites?.Count >= 10)
+            return BadRequest(new { message = $"User {request.username} does not accept invites or has to many invites." });
 
-        if(user == getUser())
-            return BadRequest(new { message = $"You cannot invite yourself." });
+        String accessKey = Shared.getRandomString(128);
 
-        Invite invite = new Invite() { user = user, content = request.content, accessKey = request.accessKey};
+        Invite invite = new Invite() { user = user, content = request.content, accessKey = accessKey};
 
         DB.Invites.Add(invite);
         DB.SaveChanges();
 
-        return Ok(new { message = $"Invite to {request.username} successfully send." });
+        return Ok(new { 
+            message = $"Invite to {request.username} successfully send.", 
+            accessKey = accessKey
+        });
     }
 
-    [HttpGet("status")]
+    [HttpGet("")]
     public ActionResult<Object> CheckInvite(string accessKey)
     {        
         Invite invite = DB.Invites.Where(x => x.accessKey == accessKey).FirstOrDefault();
@@ -59,13 +60,6 @@ public class InviteController : ControllerBase
             return NotFound();
 
         return Ok(new { message = $"Pending" });
-    }
-
-    private User getUser()
-    {
-        Claim uuidClaim = Request.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
-        if (uuidClaim is null) return null;
-        return DB.Users.Where(x => x.uuid == uuidClaim.Value).FirstOrDefault();
     }
 
 }

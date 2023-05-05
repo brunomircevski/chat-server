@@ -11,8 +11,5 @@ namespace Chat.Models
 
         [MaxLength(4096, ErrorMessage = "Invite content must be under 4096 characters long.")]
         public required string content { get; set; }
-
-        [MaxLength(256, ErrorMessage = "Access key must be under 256 characters long.")]
-        public required string accessKey { get; set; }
     }
 }
