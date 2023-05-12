@@ -40,7 +40,7 @@ public class InviteController : ControllerBase
 
         String accessKey = Shared.getRandomString(128);
 
-        Invite invite = new Invite() { user = user, content = request.content, accessKey = accessKey};
+        Invite invite = new Invite() { user = user, content = request.content, accessKey = accessKey, encryptedKey = request.encryptedKey};
 
         DB.Invites.Add(invite);
         DB.SaveChanges();
@@ -60,6 +60,17 @@ public class InviteController : ControllerBase
             return NotFound();
 
         return Ok(new { message = $"Pending" });
+    }
+
+    [HttpGet("public-key")]
+    public ActionResult<Object> GetPublicKey(string username)
+    {        
+        User user = DB.Users.Where(x => x.username == username).FirstOrDefault();
+
+        if (user is null)
+            return NotFound();
+
+        return Ok(new { username = user.username, publicKey = user.publicKey });
     }
 
 }

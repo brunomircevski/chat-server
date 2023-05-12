@@ -29,6 +29,9 @@ namespace Chat.Models
         [MaxLength(131072)]
         public string encryptedUserData { get; set; }
 
+        [MaxLength(131072)]
+        public string encryptedInvitesData { get; set; }
+
         [Required]
         public bool acceptsInvites { get; set; }
 

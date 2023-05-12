@@ -3,6 +3,7 @@ using System;
 using Chat.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chat.Migrations
 {
     [DbContext(typeof(MysqlDB))]
-    partial class MysqlDBModelSnapshot : ModelSnapshot
+    [Migration("20230512104226_UpdateInvites")]
+    partial class UpdateInvites
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,10 +80,6 @@ namespace Chat.Migrations
 
                     b.Property<bool>("acceptsInvites")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("encryptedInvitesData")
-                        .HasMaxLength(131072)
-                        .HasColumnType("longtext");
 
                     b.Property<string>("encryptedUserData")
                         .HasMaxLength(131072)
