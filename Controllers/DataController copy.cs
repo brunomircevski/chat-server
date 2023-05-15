@@ -46,9 +46,9 @@ public class DataController : ControllerBase
         string uuid = getUserUUID();
         User user = DB.Users.Where(x => x.uuid == uuid).FirstOrDefault();
 
-        return Ok(new
-        {
-            username = user.username,
+        if(user is null) return NotFound();
+
+        return Ok(new { 
             data = user.encryptedInvitesData
         });
     }

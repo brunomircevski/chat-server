@@ -14,5 +14,8 @@ namespace Chat.Models
         public required string accessKey { get; set; }
 
         public DateOnly dateCreated { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+        [Required]
+        public bool active { get; set; } = false;
     }
 }

@@ -59,7 +59,27 @@ public class InviteController : ControllerBase
         if (invite is null)
             return NotFound();
 
-        return Ok(new { message = $"Pending" });
+        return Ok(new { message = "Pending" });
+    }
+
+    [HttpDelete("")]
+    public ActionResult<Object> CancelInvite(string inviteAccessKey, string channelAccessKey)
+    {        
+        Invite invite = DB.Invites.Where(x => x.accessKey == inviteAccessKey).FirstOrDefault();
+
+        if (invite is null)
+            return NotFound();
+        
+        DB.Remove(invite);
+
+        Channel channel = DB.Channels.Where(x => x.accessKey == channelAccessKey).FirstOrDefault();
+
+        if (channel is not null)
+            DB.Remove(channel);
+
+        DB.SaveChanges();
+
+        return Ok(new { message = "Invite canceled" });
     }
 
     [HttpGet("public-key")]
