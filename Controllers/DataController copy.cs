@@ -53,6 +53,30 @@ public class DataController : ControllerBase
         });
     }
 
+    [HttpGet("received-invites")]
+    public ActionResult<Object> GetMyInvites()
+    {        
+        string uuid = getUserUUID();
+        User user = DB.Users.Where(x => x.uuid == uuid).FirstOrDefault();
+
+        if (user is null)
+            return NotFound();
+
+        List<Invite> invites = DB.Invites.Where(x => x.user == user).ToList();
+
+        if (invites is null)
+            return NoContent();
+
+        List<InviteDto> invitesDto = new List<InviteDto>();
+
+        foreach (Invite inv in invites)
+        {   
+            invitesDto.Add(new InviteDto() { username = null, content = inv.content, accessKey = inv.accessKey, encryptedKey = inv.encryptedKey});
+        }
+
+        return Ok(invitesDto);
+    }
+
 
     private string getUserUUID()
     {

@@ -14,5 +14,8 @@ namespace Chat.Models
 
         [MaxLength(1024, ErrorMessage = "Invite encrypted key must be under 1024 characters long.")]
         public required string encryptedKey { get; set; }
+
+        [MaxLength(256)]
+        public string accessKey { get; set; }
     }
 }
