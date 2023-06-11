@@ -41,4 +41,32 @@ public class ChannelController : ControllerBase
         });
     }
 
+    [HttpDelete("")]
+    public ActionResult<Object> RemoveChannel(string accessKey)
+    {        
+        Channel channel = DB.Channels.Where(x => x.accessKey == accessKey).FirstOrDefault();
+
+        if (channel is null)
+            return NotFound();
+        
+        DB.Remove(channel);
+        DB.SaveChanges();
+
+        return Ok(new { message = "Channel removed" });
+    }
+
+    [HttpGet("status")]
+    public ActionResult<Object> CheckChannelStatus(string accessKey)
+    {
+        Channel channel = DB.Channels.Where(x => x.accessKey == accessKey).FirstOrDefault();
+
+        if (channel is null)
+            return NotFound();
+
+        return Ok(new
+        {
+            active = channel.active
+        });
+    }
+
 }

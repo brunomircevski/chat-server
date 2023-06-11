@@ -63,7 +63,7 @@ public class InviteController : ControllerBase
     }
 
     [HttpDelete("")]
-    public ActionResult<Object> CancelInvite(string inviteAccessKey, string channelAccessKey)
+    public ActionResult<Object> CancelInvite(string inviteAccessKey)
     {        
         Invite invite = DB.Invites.Where(x => x.accessKey == inviteAccessKey).FirstOrDefault();
 
@@ -71,12 +71,6 @@ public class InviteController : ControllerBase
             return NotFound();
         
         DB.Remove(invite);
-
-        Channel channel = DB.Channels.Where(x => x.accessKey == channelAccessKey).FirstOrDefault();
-
-        if (channel is not null)
-            DB.Remove(channel);
-
         DB.SaveChanges();
 
         return Ok(new { message = "Invite canceled" });
