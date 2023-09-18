@@ -30,6 +30,8 @@ public class DataController : ControllerBase
         string uuid = getUserUUID();
         User user = DB.Users.Where(x => x.uuid == uuid).FirstOrDefault();
 
+        if(user is null) return BadRequest();
+
         user.encryptedInvitesData = request.data;
 
         DB.SaveChanges();
@@ -77,6 +79,36 @@ public class DataController : ControllerBase
         return Ok(invitesDto);
     }
 
+    [HttpPost("user")]
+    public ActionResult<Object> UpdateUserData(CustomDataDto request)
+    {
+        string uuid = getUserUUID();
+        User user = DB.Users.Where(x => x.uuid == uuid).FirstOrDefault();
+
+        if(user is null) return BadRequest();
+
+        user.encryptedUserData = request.data;
+
+        DB.SaveChanges();
+
+        return Ok(new
+        {
+            message = "Data saved"
+        });
+    }
+
+    [HttpGet("user")]
+    public ActionResult<Object> GetUserData()
+    {
+        string uuid = getUserUUID();
+        User user = DB.Users.Where(x => x.uuid == uuid).FirstOrDefault();
+
+        if(user is null) return NotFound();
+
+        return Ok(new { 
+            data = user.encryptedUserData
+        });
+    }
 
     private string getUserUUID()
     {

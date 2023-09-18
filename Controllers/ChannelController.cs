@@ -69,4 +69,21 @@ public class ChannelController : ControllerBase
         });
     }
 
+    [HttpPost("activate")]
+    public ActionResult<Object> ActivateChannel(string accessKey)
+    {
+        Channel channel = DB.Channels.Where(x => x.accessKey == accessKey).FirstOrDefault();
+
+        if (channel is null)
+            return NotFound();
+        
+        if (channel.active)
+            return Ok(new { message = "Channel is already active" });
+
+        channel.active = true;
+        DB.SaveChanges();
+
+        return Ok(new { message = "Channel activated" });
+    }
+
 }
