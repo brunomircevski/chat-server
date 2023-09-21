@@ -3,6 +3,7 @@ using System;
 using Chat.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chat.Migrations
 {
     [DbContext(typeof(MysqlDB))]
-    partial class MysqlDBModelSnapshot : ModelSnapshot
+    [Migration("20230921111230_AddedMessages")]
+    partial class AddedMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,8 +90,8 @@ namespace Chat.Migrations
                         .HasMaxLength(131072)
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("dateCreated")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("dateCreated")
+                        .HasColumnType("date");
 
                     b.HasKey("uuid");
 
