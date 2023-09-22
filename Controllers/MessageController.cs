@@ -59,7 +59,7 @@ public class MessageController : ControllerBase
             olderThanDate = DB.Messages
             .Include(x => x.channel)
             .Where(x => x.channel.accessKey == accessKey)
-            .OrderByDescending(x => x.dateCreated)
+            .Where(x => x.uuid == olderThan)
             .Select(x => x.dateCreated)
             .FirstOrDefault();
         }
@@ -81,6 +81,7 @@ public class MessageController : ControllerBase
         {
             count = messages.Count(),
             olderThan = olderThan,
+            olderThanDate = olderThanDate,
             messages = messages
         });
     }
