@@ -27,7 +27,7 @@ public class ChannelController : ControllerBase
     [HttpPost(""), Authorize]
     public ActionResult<Object> CreateChannel()
     {
-        String accessKey = Shared.getRandomString(128);
+        String accessKey = Shared.GetRandomString(128);
 
         Channel channel = new Channel() { accessKey = accessKey };
 

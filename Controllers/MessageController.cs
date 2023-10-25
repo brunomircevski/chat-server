@@ -1,14 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Reflection;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using Chat.DataAccess;
+using Chat.Hubs;
 using Chat.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Chat.Controllers;
 
@@ -17,12 +12,14 @@ namespace Chat.Controllers;
 public class MessageController : ControllerBase
 {
     private readonly IConfiguration configuration;
+    private readonly IHubContext<ChatHub> hubContext;
     private readonly IDB DB;
 
-    public MessageController(IConfiguration configuration, IDB DB)
+    public MessageController(IConfiguration configuration, IHubContext<ChatHub> hubContext, IDB DB)
     {
         this.configuration = configuration;
         this.DB = DB;
+        this.hubContext = hubContext;
     }
 
     [HttpPost("")]
@@ -40,6 +37,8 @@ public class MessageController : ControllerBase
 
         DB.Messages.Add(message);
         DB.SaveChanges();
+
+        SendToConnectedClients(channel.uuid, message);
 
         return Ok(new
         {
@@ -84,6 +83,17 @@ public class MessageController : ControllerBase
             olderThanDate = olderThanDate,
             messages = messages
         });
+    }
+
+    private void SendToConnectedClients(string channelUUID, Message message) {
+        MessageGetDto messageDto = new MessageGetDto()
+        {
+            uuid = message.uuid,
+            content = message.content,
+            date = message.dateCreated
+        };
+
+        hubContext.Clients.Group(channelUUID).SendAsync("ReceivedMessage", messageDto);
     }
 
 }

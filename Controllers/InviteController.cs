@@ -38,7 +38,7 @@ public class InviteController : ControllerBase
         if (!user.acceptsInvites || user.Invites?.Count >= 10)
             return BadRequest(new { message = $"User {request.username} does not accept invites or has to many invites." });
 
-        String accessKey = Shared.getRandomString(128);
+        String accessKey = Shared.GetRandomString(128);
 
         Invite invite = new Invite() { user = user, content = request.content, accessKey = accessKey, encryptedKey = request.encryptedKey};
 

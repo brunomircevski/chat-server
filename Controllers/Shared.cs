@@ -5,7 +5,7 @@ namespace Chat.Controllers;
 
 public static class Shared
 {
-    public static String getRandomString(int length)
+    public static String GetRandomString(int length)
     {
         if (length < 1) return String.Empty;
 
