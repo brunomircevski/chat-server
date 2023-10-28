@@ -37,6 +37,7 @@ public class ChannelController : ControllerBase
         return Ok(new
         {
             message = "Channel successfully created.",
+            uuid = channel.uuid,
             accessKey = accessKey
         });
     }
