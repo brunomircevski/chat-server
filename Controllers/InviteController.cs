@@ -36,7 +36,7 @@ public class InviteController : ControllerBase
             return NotFound(new { message = $"User {request.username} not found." });
 
         if (!user.acceptsInvites || user.Invites?.Count >= 10)
-            return BadRequest(new { message = $"User {request.username} does not accept invites or has to many invites." });
+            return BadRequest(new { message = $"User {request.username} does not accept invites." });
 
         String accessKey = Shared.GetRandomString(128);
 
