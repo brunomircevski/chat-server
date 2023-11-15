@@ -63,6 +63,9 @@ public class MessageController : ControllerBase
             .FirstOrDefault();
         }
 
+        Channel channel = DB.Channels.Where(x => x.accessKey == accessKey).FirstOrDefault();
+        if(channel == null) return NotFound();
+
         var messages = DB.Messages
         .Include(x => x.channel)
         .Where(x => x.channel.accessKey == accessKey)
