@@ -17,6 +17,7 @@ public class AuthController : ControllerBase
 {
     private readonly IConfiguration configuration;
     private readonly IDB DB;
+    private static Dictionary<string, string> challenges = new();
 
     public AuthController(IConfiguration configuration, IDB DB)
     {
@@ -61,6 +62,9 @@ public class AuthController : ControllerBase
         if (user is null)
             return NotFound();
 
+        if(!challenges.ContainsKey(request.username)) 
+            return BadRequest(new { message = "You need to get a challenge first" });
+
         //Verify the signature
         try
         {
@@ -68,7 +72,7 @@ public class AuthController : ControllerBase
             rsa.ImportFromPem(user.publicKey);
 
             byte[] signatureBytes = Convert.FromBase64String(request.signature);
-            byte[] messageBytes = Encoding.UTF8.GetBytes(request.username);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(challenges[request.username]);
 
             bool isSignatureValid = rsa.VerifyData(messageBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
@@ -80,6 +84,7 @@ public class AuthController : ControllerBase
         }
 
         string jwt = CreateToken(user);
+        challenges.Remove(request.username);
 
         return Ok(new { token = jwt });
     }
@@ -90,6 +95,19 @@ public class AuthController : ControllerBase
         User user = getUser();
         if (user is null) return NotFound();
         return Ok(user);
+    }
+
+    [HttpGet("challenge")]
+    public ActionResult<string> GetChallenge(string username)
+    {
+        string uuid = DB.Users.Where(x => x.username == username).Select(x => x.uuid).FirstOrDefault();
+        if(uuid is null) return NotFound();
+        
+        if(challenges.ContainsKey(username)) return Ok(new { challenge = challenges[username]});
+
+        string challenge = Shared.GetRandomString(64);
+        challenges.Add(username, challenge);
+        return Ok(new { challenge = challenge});
     }
 
     [HttpGet("server-info")]
