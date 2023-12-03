@@ -13,7 +13,8 @@ public class MysqlDB : DbContext, IDB
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        
+        modelBuilder.Entity<Message>()
+            .HasIndex(x => x.dateCreated);
     }
 
     public DbSet<User> Users { get; set; }
