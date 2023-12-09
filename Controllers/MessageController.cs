@@ -88,6 +88,25 @@ public class MessageController : ControllerBase
         });
     }
 
+    [HttpDelete("")]
+    public ActionResult<Object> RemoveMessage(string accessKey, string uuid)
+    {        
+        Channel channel = DB.Channels.Where(x => x.accessKey == accessKey).FirstOrDefault();
+        
+        Message message = DB.Messages
+        .Where(x => x.channel == channel)
+        .Where(x => x.uuid == uuid).FirstOrDefault();
+
+        if(message is null) return NotFound();
+
+        DB.Remove(message);
+        DB.SaveChanges();
+
+        hubContext.Clients.Group(channel.uuid).SendAsync("RemovedMessage", uuid);
+
+        return Ok(new { message = "Message removed" });
+    }
+
     private void SendToConnectedClients(string channelUUID, Message message) {
         MessageGetDto messageDto = new MessageGetDto()
         {

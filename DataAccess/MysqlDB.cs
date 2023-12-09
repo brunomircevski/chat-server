@@ -14,7 +14,8 @@ public class MysqlDB : DbContext, IDB
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Message>()
-            .HasIndex(x => x.dateCreated);
+            .HasIndex(x => new {x.dateCreated, x.uuid});
+
     }
 
     public DbSet<User> Users { get; set; }
