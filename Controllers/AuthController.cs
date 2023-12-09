@@ -89,6 +89,17 @@ public class AuthController : ControllerBase
         return Ok(new { token = jwt });
     }
 
+    [HttpDelete("account"), Authorize]
+    public ActionResult<Object> RemoveUser()
+    {        
+        User user = getUser();
+        
+        DB.Remove(user);
+        DB.SaveChanges();
+
+        return Ok(new { message = "Account deleted" });
+    }
+
     [HttpGet("user-info"), Authorize]
     public ActionResult<User> UserInfo()
     {
